@@ -21,15 +21,21 @@ label { display: block; margin: 10px 0; }
 </div>
 
 <script>
-// Get PC ID from URL
-const path = window.location.pathname.slice(1); // removes the leading "/"
-if (path) {
-    document.getElementById("header").innerText = "Control Panel for " + path;
-    document.getElementById("menu").style.display = "block";
+// Get PC ID from URL path
+const pcid = window.location.pathname.slice(1); // removes leading "/"
+const header = document.getElementById("header");
+const menu = document.getElementById("menu");
+
+if (!pcid) {
+    header.innerText = "Waiting for program to start...";
+    menu.style.display = "none";
+} else {
+    header.innerText = "Control Panel for " + pcid;
+    menu.style.display = "block";
 }
 
-// Store settings in localStorage for simplicity
-const settingsKey = "settings_" + path;
+// LocalStorage key for this PC
+const settingsKey = "settings_" + pcid;
 
 // Load saved settings
 const saved = localStorage.getItem(settingsKey);
@@ -46,6 +52,9 @@ function saveSettings() {
         feature2: document.getElementById("feature2").checked
     };
     localStorage.setItem(settingsKey, JSON.stringify(data));
+
+    // Optional: update a settings JSON on server if you host one
+    // e.g., POST fetch('/settings.json', { method:'POST', body:JSON.stringify(data) })
 }
 
 document.getElementById("feature1").addEventListener("change", saveSettings);
