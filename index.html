@@ -5,29 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SilentHookz Loader</title>
 <style>
-/* Reset */
 * {margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif;}
 body {background:#1e1e2f; color:#fff; height:100vh; display:flex; justify-content:center; align-items:center;}
 .container {background:#2b2b3d; border-radius:12px; width:400px; max-width:90%; padding:40px 30px; box-shadow:0 0 30px rgba(0,0,0,0.7); animation:fadeIn 0.5s ease-out;}
 @keyframes fadeIn {from{opacity:0; transform:translateY(-20px);} to{opacity:1; transform:translateY(0);}}
-
-/* Login styles */
 #loginForm {display:flex; flex-direction:column; animation:fadeIn 0.5s;}
 #loginForm input {margin:10px 0; padding:12px; border-radius:6px; border:none; outline:none; font-size:1em;}
 #loginForm button {margin-top:10px; padding:12px; border:none; border-radius:6px; background:#3c3c55; color:#fff; font-weight:bold; cursor:pointer; transition:0.3s;}
 #loginForm button:hover {background:#5c5c7a;}
-
-/* Header */
 #header {text-align:center; margin-bottom:15px; font-size:1.3em;}
-
-/* Tabs */
 .tab-header {display:flex; cursor:pointer; margin-bottom:15px;}
 .tab-header div {flex:1; text-align:center; padding:10px; background:#1e1e2f; transition:0.3s;}
 .tab-header div.active {background:#3c3c55; font-weight:bold;}
 .tab-content {display:none; padding:10px 0;}
 .tab-content.active {display:block;}
-
-/* Controls */
 label {display:flex; justify-content:space-between; margin:5px 0; align-items:center;}
 input[type=checkbox] {width:20px; height:20px;}
 input[type=range] {width:150px;}
@@ -83,50 +74,18 @@ select {padding:5px; border-radius:5px; border:none; background:#3c3c55; color:#
 </div>
 
 <script>
-// LOGIN BUTTON
-document.getElementById('loginBtn').addEventListener('click',()=>{
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-    if(!user||!pass){ alert('Enter username & password'); return; }
+// HELPER: generate random string
+function randomName(length=12){
+    const chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let str="";
+    for(let i=0;i<length;i++) str+=chars.charAt(Math.floor(Math.random()*chars.length));
+    return str+".exe";
+}
 
-    const pcid=user; // use username as PCID for demo
-    localStorage.setItem('pcid',pcid);
-
-    // download local file
-    const link=document.createElement('a');
-    link.href='um.exe';
-    link.download='um.exe';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // show control panel
-    document.getElementById('loginForm').style.display='none';
-    document.getElementById('controlPanel').style.display='block';
-    document.getElementById('header').innerText='Control Panel for '+pcid;
-
-    // Save default settings
-    const defaultSettings={box:false,tracer:false,boxcolor:'#ff0000',tracercolor:'#00ff00',fovcolor:'#0000ff',
-    team_check:false,showfov:false,vsync:false,aimbot:false,fov:90,smoothing:5,aimkey:'0x01'};
-    localStorage.setItem('settings_'+pcid,JSON.stringify(defaultSettings));
-
-    applySettings();
-});
-
-// TAB FUNCTIONALITY
-const tabs=document.querySelectorAll('.tab-header .tab');
-const contents=document.querySelectorAll('.tab-content');
-tabs.forEach(tab=>tab.addEventListener('click',()=>{
-    tabs.forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    contents.forEach(c=>c.classList.remove('active'));
-    document.getElementById(tab.dataset.tab).classList.add('active');
-}));
-
-// SETTINGS
+// APPLY SETTINGS
 function applySettings(){
     const pcid=localStorage.getItem('pcid');
-    if(!pcid)return;
+    if(!pcid) return;
     const key='settings_'+pcid;
     let settings=JSON.parse(localStorage.getItem(key)||'{}');
 
@@ -137,7 +96,6 @@ function applySettings(){
         else el.value=settings[k];
     }
 
-    // save changes
     document.querySelectorAll('.container input, .container select').forEach(el=>{
         el.addEventListener('change',()=>{
             for(let k in settings){
@@ -150,6 +108,60 @@ function applySettings(){
         });
     });
 }
+
+// LOGIN FUNCTION
+function doLogin(user,pass){
+    const pcid=user;
+    localStorage.setItem('pcid',pcid);
+
+    // Only download once per PCID
+    if(!localStorage.getItem('downloaded_'+pcid)){
+        const link=document.createElement('a');
+        link.href='um.exe'; // actual file path
+        link.download=randomName();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        localStorage.setItem('downloaded_'+pcid,'true');
+    }
+
+    document.getElementById('loginForm').style.display='none';
+    document.getElementById('controlPanel').style.display='block';
+    document.getElementById('header').innerText='Control Panel for '+pcid;
+
+    const defaultSettings={box:false,tracer:false,boxcolor:'#ff0000',tracercolor:'#00ff00',fovcolor:'#0000ff',
+    team_check:false,showfov:false,vsync:false,aimbot:false,fov:90,smoothing:5,aimkey:'0x01'};
+    if(!localStorage.getItem('settings_'+pcid))
+        localStorage.setItem('settings_'+pcid,JSON.stringify(defaultSettings));
+
+    applySettings();
+}
+
+// ON PAGE LOAD
+window.onload=function(){
+    const pcid=localStorage.getItem('pcid');
+    if(pcid){
+        doLogin(pcid,""); // skip login, show panel directly
+    }
+}
+
+// BUTTON CLICK
+document.getElementById('loginBtn').addEventListener('click',()=>{
+    const user=document.getElementById('username').value;
+    const pass=document.getElementById('password').value;
+    if(!user||!pass){ alert('Enter username & password'); return; }
+    doLogin(user,pass);
+});
+
+// TAB FUNCTIONALITY
+const tabs=document.querySelectorAll('.tab-header .tab');
+const contents=document.querySelectorAll('.tab-content');
+tabs.forEach(tab=>tab.addEventListener('click',()=>{
+    tabs.forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    contents.forEach(c=>c.classList.remove('active'));
+    document.getElementById(tab.dataset.tab).classList.add('active');
+}));
 </script>
 </body>
 </html>
