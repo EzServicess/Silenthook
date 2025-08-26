@@ -2,177 +2,158 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SilentHookz Loader</title>
+<title>SilentHookz Remote Menu</title>
 <style>
-* {margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif;}
-body {background:#1e1e2f; color:#fff; height:100vh; display:flex; justify-content:center; align-items:center;}
-.container {background:#2b2b3d; border-radius:12px; width:400px; max-width:90%; padding:40px 30px; box-shadow:0 0 30px rgba(0,0,0,0.7);}
-#loginForm, #statusMessage, #controlPanel {animation:fadeIn 0.5s;}
-@keyframes fadeIn {from{opacity:0; transform:translateY(-20px);} to{opacity:1; transform:translateY(0);}}
-#loginForm input {margin:10px 0; padding:12px; border-radius:6px; border:none; outline:none; font-size:1em;}
-#loginForm button {margin-top:10px; padding:12px; border:none; border-radius:6px; background:#3c3c55; color:#fff; font-weight:bold; cursor:pointer;}
-#header {text-align:center; margin-bottom:15px; font-size:1.3em;}
-.tab-header {display:flex; cursor:pointer; margin-bottom:15px;}
-.tab-header div {flex:1; text-align:center; padding:10px; background:#1e1e2f;}
-.tab-header div.active {background:#3c3c55; font-weight:bold;}
-.tab-content {display:none; padding:10px 0;}
-.tab-content.active {display:block;}
-label {display:flex; justify-content:space-between; margin:5px 0; align-items:center;}
-input[type=checkbox] {width:20px; height:20px;}
-input[type=range] {width:150px;}
-input[type=color] {width:40px; height:25px; border:none; margin-left:10px; cursor:pointer;}
-select {padding:5px; border-radius:5px; border:none; background:#3c3c55; color:#fff;}
+body { font-family: Arial, sans-serif; background: #1e1e2f; color: #fff; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; }
+#container { width: 400px; padding: 20px; background: #2b2b3e; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); text-align:center; }
+input { width: 80%; padding: 8px; margin: 10px 0; border-radius:6px; border:none; }
+button { padding:10px 20px; border:none; border-radius:6px; background:#4caf50; color:white; cursor:pointer; font-weight:bold; }
+button:hover { background:#45a049; }
+#menu { display:none; text-align:left; margin-top:20px; }
+label { display:block; margin:5px 0; }
+.tab { display:none; }
+.tab.active { display:block; }
+.tabs { display:flex; justify-content:space-around; margin-bottom:10px; }
+.tabs button { flex:1; margin:0 2px; background:#444; }
+.tabs button.active { background:#4caf50; }
 </style>
 </head>
 <body>
-<div class="container">
-<h1 id="header">SilentHookz Loader</h1>
+<div id="container">
+  <div id="login">
+    <h2>Login with License</h2>
+    <input type="text" id="license" placeholder="Enter License Key">
+    <button id="loginBtn">Login</button>
+  </div>
 
-<!-- LOGIN FORM -->
-<div id="loginForm">
-<input type="text" id="licenseKey" placeholder="Enter License Key">
-<button id="loginBtn">Login</button>
-</div>
+  <div id="waiting">
+    <h2 id="waitText">Waiting for program to start...</h2>
+  </div>
 
-<!-- STATUS MESSAGE -->
-<div id="statusMessage" style="display:none; text-align:center; font-size:1.1em; margin-top:20px;">
-Waiting for program to start...
-</div>
-
-<!-- CONTROL PANEL -->
-<div id="controlPanel" style="display:none;">
-<div class="tab-header">
-    <div class="tab active" data-tab="visuals">Visuals</div>
-    <div class="tab" data-tab="aim">Aim</div>
-</div>
-
-<div class="tab-content active" id="visuals">
-<label>Box <input type="checkbox" id="box"></label>
-<label>Tracer <input type="checkbox" id="tracer"></label>
-<label>Box Color <input type="color" id="boxcolor"></label>
-<label>Tracer Color <input type="color" id="tracercolor"></label>
-<label>FOV Color <input type="color" id="fovcolor"></label>
-<label>Team Check <input type="checkbox" id="team_check"></label>
-<label>Draw FOV <input type="checkbox" id="showfov"></label>
-<label>VSYNC <input type="checkbox" id="vsync"></label>
-</div>
-
-<div class="tab-content" id="aim">
-<label>Aimbot <input type="checkbox" id="aimbot"></label>
-<label>FOV <input type="range" id="fov" min="1" max="1000"></label>
-<label>Smooth <input type="range" id="smoothing" min="0" max="15" step="0.1"></label>
-<label>Aim Key
-<select id="aimkey">
-<option value="0x01">LMB</option>
-<option value="0x02">RMB</option>
-<option value="0x04">MB3</option>
-<option value="0x05">MB4</option>
-<option value="0x06">MB5</option>
-</select>
-</label>
-</div>
-</div>
+  <div id="menu">
+    <h2>Remote Menu</h2>
+    <div class="tabs">
+      <button id="visualsTab" class="active">Visuals</button>
+      <button id="aimTab">Aim</button>
+    </div>
+    <div id="visuals" class="tab active">
+      <label><input type="checkbox" id="box"> Box</label>
+      <label><input type="checkbox" id="tracer"> Tracer</label>
+      <label>Box Color: <input type="color" id="boxcolor" value="#ff0000"></label>
+      <label>Tracer Color: <input type="color" id="tracercolor" value="#00ff00"></label>
+      <label>FOV Color: <input type="color" id="fovcolor" value="#0000ff"></label>
+      <label><input type="checkbox" id="teamcheck"> Team Check</label>
+      <label><input type="checkbox" id="showfov"> Draw FOV</label>
+      <label><input type="checkbox" id="vsync"> VSYNC</label>
+    </div>
+    <div id="aim" class="tab">
+      <label><input type="checkbox" id="aimbot"> Aimbot</label>
+      <label>FOV: <input type="range" id="aimfov" min="1" max="1000" value="90"></label>
+      <label>Smooth: <input type="range" id="smooth" min="0" max="15" value="5"></label>
+      <label>Aim Key:
+        <select id="aimkey">
+          <option value="0x01">LMB</option>
+          <option value="0x02">RMB</option>
+          <option value="0x04">MB3</option>
+          <option value="0x05">MB4</option>
+          <option value="0x06">MB5</option>
+        </select>
+      </label>
+    </div>
+  </div>
 </div>
 
 <script>
-// Hardcoded valid license keys
-const validKeys = ["ABC123","DEF456","GHI789"];
+// --- Persistent storage ---
+let pcid = window.location.pathname.slice(1);  // get PCID from URL
+let tokenKey = "token_" + pcid;
+let token = localStorage.getItem(tokenKey);
 
-// Generate truly random EXE name
-function randomName(len=16){
-    const chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let str="";
-    for(let i=0;i<len;i++) str+=chars.charAt(Math.floor(Math.random()*chars.length));
-    return str+".exe";
+// --- Simple random token generator ---
+function randomToken(len=16){
+  let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let str = "";
+  for(let i=0;i<len;i++) str+=chars[Math.floor(Math.random()*chars.length)];
+  return str;
 }
 
-// Apply saved settings for PCID
-function applySettings(){
-    const pcid=localStorage.getItem('pcid');
-    if(!pcid) return;
-    const key='settings_'+pcid;
-    let settings=JSON.parse(localStorage.getItem(key)||'{}');
-    for(let k in settings){ const el=document.getElementById(k); if(!el)continue; if(el.type==='checkbox') el.checked=settings[k]; else el.value=settings[k];}
-    document.querySelectorAll('.container input, .container select').forEach(el=>{
-        el.addEventListener('change',()=>{
-            for(let k in settings){ const el2=document.getElementById(k); if(!el2)continue; if(el2.type==='checkbox') settings[k]=el2.checked; else settings[k]=el2.value;}
-            localStorage.setItem(key,JSON.stringify(settings));
-        });
-    });
-}
+// --- Login ---
+document.getElementById("loginBtn").addEventListener("click",()=>{
+  let lic = document.getElementById("license").value.trim();
+  if(lic.length<1){ alert("Enter license"); return; }
 
-// Login function
-function doLogin(key,pcid,token){
-    localStorage.setItem('pcid',pcid);
-    localStorage.setItem('authToken_'+pcid,token);
+  // Generate random exe name (simulate download)
+  let exeName = randomToken(12)+".exe";
+  console.log("Downloaded:", exeName);
 
-    // Only download EXE once per PCID
-    if(!localStorage.getItem('downloaded_'+pcid)){
-        const link=document.createElement('a');
-        link.href='um.exe';
-        link.download=randomName(); // random name
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        localStorage.setItem('downloaded_'+pcid,'true');
-    }
+  // Generate persistent token
+  token = randomToken(16);
+  localStorage.setItem(tokenKey, token);
 
-    // Hide login, show waiting status
-    document.getElementById('loginForm').style.display='none';
-    document.getElementById('controlPanel').style.display='none';
-    document.getElementById('statusMessage').style.display='block';
-    document.getElementById('header').innerText='Waiting for program...';
-
-    const defaultSettings={box:false,tracer:false,boxcolor:'#ff0000',tracercolor:'#00ff00',fovcolor:'#0000ff',
-    team_check:false,showfov:false,vsync:false,aimbot:false,fov:90,smoothing:5,aimkey:'0x01'};
-    if(!localStorage.getItem('settings_'+pcid)) localStorage.setItem('settings_'+pcid,JSON.stringify(defaultSettings));
-}
-
-// On page load
-window.onload=function(){
-    const urlParams=new URLSearchParams(window.location.search);
-    const token=urlParams.get('token');
-    const pcid=window.location.pathname.slice(1);
-
-    // Show control panel only if program opened page with valid token
-    if(pcid && token && token===localStorage.getItem('authToken_'+pcid)){
-        document.getElementById('loginForm').style.display='none';
-        document.getElementById('statusMessage').style.display='none';
-        document.getElementById('controlPanel').style.display='block';
-        document.getElementById('header').innerText='Control Panel for '+pcid;
-        applySettings();
-        return;
-    }
-
-    // Otherwise show login form
-    document.getElementById('loginForm').style.display='block';
-    document.getElementById('statusMessage').style.display='none';
-    document.getElementById('controlPanel').style.display='none';
-}
-
-// Login button click
-document.getElementById('loginBtn').addEventListener('click',()=>{
-    const key=document.getElementById('licenseKey').value.trim();
-    if(!validKeys.includes(key)){ alert('Invalid license key'); return; }
-
-    const pcid='PC_'+Math.random().toString(36).substr(2,8); // generate new PCID
-    const token=Math.random().toString(36).substr(2,12); // temporary token for handshake
-    doLogin(key,pcid,token);
-
-    // Update URL with token (for program)
-    window.history.replaceState(null,null,'/'+pcid+'?token='+token);
+  // Hide login, show waiting
+  document.getElementById("login").style.display="none";
+  document.getElementById("waiting").style.display="block";
 });
 
-// Tab functionality
-const tabs=document.querySelectorAll('.tab-header .tab');
-const contents=document.querySelectorAll('.tab-content');
-tabs.forEach(tab=>tab.addEventListener('click',()=>{
-    tabs.forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    contents.forEach(c=>c.classList.remove('active'));
-    document.getElementById(tab.dataset.tab).classList.add('active');
-}));
+// --- Check token for PCID access ---
+if(pcid && token){
+  document.getElementById("login").style.display="none";
+  document.getElementById("waiting").style.display="block";
+
+  // Simulate program opening -> show menu after 1s
+  setTimeout(()=>{
+    document.getElementById("waiting").style.display="none";
+    document.getElementById("menu").style.display="block";
+  },1000);
+}else{
+  // Not logged in -> force login page
+  document.getElementById("login").style.display="block";
+  document.getElementById("waiting").style.display="none";
+  document.getElementById("menu").style.display="none";
+}
+
+// --- Tabs ---
+document.getElementById("visualsTab").addEventListener("click",()=>{
+  document.getElementById("visuals").classList.add("active");
+  document.getElementById("aim").classList.remove("active");
+  document.getElementById("visualsTab").classList.add("active");
+  document.getElementById("aimTab").classList.remove("active");
+});
+document.getElementById("aimTab").addEventListener("click",()=>{
+  document.getElementById("aim").classList.add("active");
+  document.getElementById("visuals").classList.remove("active");
+  document.getElementById("aimTab").classList.add("active");
+  document.getElementById("visualsTab").classList.remove("active");
+});
+
+// --- Save settings locally ---
+const settingIds=["box","tracer","boxcolor","tracercolor","fovcolor","teamcheck","showfov","vsync","aimbot","aimfov","smooth","aimkey"];
+settingIds.forEach(id=>{
+  let el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener("change",()=>{
+    let data={};
+    settingIds.forEach(id=>{
+      let e=document.getElementById(id);
+      if(!e) return;
+      if(e.type==="checkbox") data[id]=e.checked;
+      else data[id]=e.value;
+    });
+    localStorage.setItem("settings_"+pcid,JSON.stringify(data));
+  });
+});
+
+// --- Load settings ---
+let saved = localStorage.getItem("settings_"+pcid);
+if(saved){
+  let data = JSON.parse(saved);
+  settingIds.forEach(id=>{
+    let e=document.getElementById(id);
+    if(!e) return;
+    if(e.type==="checkbox") e.checked=data[id];
+    else e.value=data[id];
+  });
+}
 </script>
 </body>
 </html>
