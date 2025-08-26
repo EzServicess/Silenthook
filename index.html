@@ -2,17 +2,54 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Remote Menu</title>
-<link rel="stylesheet" href="style.css">
+<title>SilentHookz Remote Menu</title>
+<style>
+body { font-family: Arial; padding: 20px; }
+label { display: block; margin: 10px 0; }
+</style>
 </head>
 <body>
-<h1>Program Control</h1>
-<label>
-  <input type="checkbox" id="feature1"> Feature 1
-</label>
-<label>
-  <input type="checkbox" id="feature2"> Feature 2
-</label>
-<script src="script.js"></script>
+<h1 id="header">Waiting for program to start...</h1>
+
+<div id="menu" style="display:none;">
+  <label>
+    <input type="checkbox" id="feature1"> Feature 1
+  </label>
+  <label>
+    <input type="checkbox" id="feature2"> Feature 2
+  </label>
+</div>
+
+<script>
+// Get PC ID from URL
+const path = window.location.pathname.slice(1); // removes the leading "/"
+if (path) {
+    document.getElementById("header").innerText = "Control Panel for " + path;
+    document.getElementById("menu").style.display = "block";
+}
+
+// Store settings in localStorage for simplicity
+const settingsKey = "settings_" + path;
+
+// Load saved settings
+const saved = localStorage.getItem(settingsKey);
+if (saved) {
+    const data = JSON.parse(saved);
+    document.getElementById("feature1").checked = data.feature1;
+    document.getElementById("feature2").checked = data.feature2;
+}
+
+// Save changes
+function saveSettings() {
+    const data = {
+        feature1: document.getElementById("feature1").checked,
+        feature2: document.getElementById("feature2").checked
+    };
+    localStorage.setItem(settingsKey, JSON.stringify(data));
+}
+
+document.getElementById("feature1").addEventListener("change", saveSettings);
+document.getElementById("feature2").addEventListener("change", saveSettings);
+</script>
 </body>
 </html>
