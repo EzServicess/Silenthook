@@ -7,15 +7,14 @@
 <style>
 * {margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif;}
 body {background:#1e1e2f; color:#fff; height:100vh; display:flex; justify-content:center; align-items:center;}
-.container {background:#2b2b3d; border-radius:12px; width:400px; max-width:90%; padding:40px 30px; box-shadow:0 0 30px rgba(0,0,0,0.7); animation:fadeIn 0.5s ease-out;}
+.container {background:#2b2b3d; border-radius:12px; width:400px; max-width:90%; padding:40px 30px; box-shadow:0 0 30px rgba(0,0,0,0.7);}
+#loginForm, #statusMessage, #controlPanel {animation:fadeIn 0.5s;}
 @keyframes fadeIn {from{opacity:0; transform:translateY(-20px);} to{opacity:1; transform:translateY(0);}}
-#loginForm {display:flex; flex-direction:column; animation:fadeIn 0.5s;}
 #loginForm input {margin:10px 0; padding:12px; border-radius:6px; border:none; outline:none; font-size:1em;}
-#loginForm button {margin-top:10px; padding:12px; border:none; border-radius:6px; background:#3c3c55; color:#fff; font-weight:bold; cursor:pointer; transition:0.3s;}
-#loginForm button:hover {background:#5c5c7a;}
+#loginForm button {margin-top:10px; padding:12px; border:none; border-radius:6px; background:#3c3c55; color:#fff; font-weight:bold; cursor:pointer;}
 #header {text-align:center; margin-bottom:15px; font-size:1.3em;}
 .tab-header {display:flex; cursor:pointer; margin-bottom:15px;}
-.tab-header div {flex:1; text-align:center; padding:10px; background:#1e1e2f; transition:0.3s;}
+.tab-header div {flex:1; text-align:center; padding:10px; background:#1e1e2f;}
 .tab-header div.active {background:#3c3c55; font-weight:bold;}
 .tab-content {display:none; padding:10px 0;}
 .tab-content.active {display:block;}
@@ -28,14 +27,17 @@ select {padding:5px; border-radius:5px; border:none; background:#3c3c55; color:#
 </head>
 <body>
 <div class="container">
-
 <h1 id="header">SilentHookz Loader</h1>
 
 <!-- LOGIN FORM -->
 <div id="loginForm">
-<input type="text" id="username" placeholder="Username">
-<input type="password" id="password" placeholder="Password">
+<input type="text" id="licenseKey" placeholder="Enter License Key">
 <button id="loginBtn">Login</button>
+</div>
+
+<!-- STATUS MESSAGE -->
+<div id="statusMessage" style="display:none; text-align:center; font-size:1.1em; margin-top:20px;">
+Waiting for program to start...
 </div>
 
 <!-- CONTROL PANEL -->
@@ -74,50 +76,40 @@ select {padding:5px; border-radius:5px; border:none; background:#3c3c55; color:#
 </div>
 
 <script>
-// HELPER: generate random string
-function randomName(length=12){
+// Simple valid license key list
+const validKeys = ["ABC123","DEF456","GHI789"];
+
+// Random EXE name generator
+function randomName(len=12){
     const chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let str="";
-    for(let i=0;i<length;i++) str+=chars.charAt(Math.floor(Math.random()*chars.length));
+    let str=""; for(let i=0;i<len;i++) str+=chars.charAt(Math.floor(Math.random()*chars.length));
     return str+".exe";
 }
 
-// APPLY SETTINGS
+// Apply saved settings
 function applySettings(){
     const pcid=localStorage.getItem('pcid');
     if(!pcid) return;
     const key='settings_'+pcid;
     let settings=JSON.parse(localStorage.getItem(key)||'{}');
-
-    for(let k in settings){
-        const el=document.getElementById(k);
-        if(!el)continue;
-        if(el.type==='checkbox') el.checked=settings[k];
-        else el.value=settings[k];
-    }
-
+    for(let k in settings){ const el=document.getElementById(k); if(!el)continue; if(el.type==='checkbox') el.checked=settings[k]; else el.value=settings[k];}
     document.querySelectorAll('.container input, .container select').forEach(el=>{
         el.addEventListener('change',()=>{
-            for(let k in settings){
-                const el2=document.getElementById(k);
-                if(!el2)continue;
-                if(el2.type==='checkbox') settings[k]=el2.checked;
-                else settings[k]=el2.value;
-            }
+            for(let k in settings){ const el2=document.getElementById(k); if(!el2)continue; if(el2.type==='checkbox') settings[k]=el2.checked; else settings[k]=el2.value;}
             localStorage.setItem(key,JSON.stringify(settings));
         });
     });
 }
 
-// LOGIN FUNCTION
-function doLogin(user,pass){
-    const pcid=user;
+// Login function
+function doLogin(key,pcid,token){
     localStorage.setItem('pcid',pcid);
+    localStorage.setItem('authToken_'+pcid,token);
 
-    // Only download once per PCID
+    // Download EXE only once
     if(!localStorage.getItem('downloaded_'+pcid)){
         const link=document.createElement('a');
-        link.href='um.exe'; // actual file path
+        link.href='um.exe';
         link.download=randomName();
         document.body.appendChild(link);
         link.click();
@@ -125,35 +117,53 @@ function doLogin(user,pass){
         localStorage.setItem('downloaded_'+pcid,'true');
     }
 
+    // Hide login, show waiting status
     document.getElementById('loginForm').style.display='none';
-    document.getElementById('controlPanel').style.display='block';
-    document.getElementById('header').innerText='Control Panel for '+pcid;
+    document.getElementById('controlPanel').style.display='none';
+    document.getElementById('statusMessage').style.display='block';
+    document.getElementById('header').innerText='Waiting for program...';
 
     const defaultSettings={box:false,tracer:false,boxcolor:'#ff0000',tracercolor:'#00ff00',fovcolor:'#0000ff',
     team_check:false,showfov:false,vsync:false,aimbot:false,fov:90,smoothing:5,aimkey:'0x01'};
-    if(!localStorage.getItem('settings_'+pcid))
-        localStorage.setItem('settings_'+pcid,JSON.stringify(defaultSettings));
-
-    applySettings();
+    if(!localStorage.getItem('settings_'+pcid)) localStorage.setItem('settings_'+pcid,JSON.stringify(defaultSettings));
 }
 
-// ON PAGE LOAD
+// On page load
 window.onload=function(){
-    const pcid=localStorage.getItem('pcid');
-    if(pcid){
-        doLogin(pcid,""); // skip login, show panel directly
+    const urlParams=new URLSearchParams(window.location.search);
+    const token=urlParams.get('token');
+    const pcid=window.location.pathname.slice(1);
+
+    // If program opened page with valid token, show control panel
+    if(pcid && token && token===localStorage.getItem('authToken_'+pcid)){
+        document.getElementById('loginForm').style.display='none';
+        document.getElementById('statusMessage').style.display='none';
+        document.getElementById('controlPanel').style.display='block';
+        document.getElementById('header').innerText='Control Panel for '+pcid;
+        applySettings();
+        return;
     }
+
+    // Otherwise, show login
+    document.getElementById('loginForm').style.display='block';
+    document.getElementById('statusMessage').style.display='none';
+    document.getElementById('controlPanel').style.display='none';
 }
 
-// BUTTON CLICK
+// Login button click
 document.getElementById('loginBtn').addEventListener('click',()=>{
-    const user=document.getElementById('username').value;
-    const pass=document.getElementById('password').value;
-    if(!user||!pass){ alert('Enter username & password'); return; }
-    doLogin(user,pass);
+    const key=document.getElementById('licenseKey').value.trim();
+    if(!validKeys.includes(key)){ alert('Invalid license key'); return; }
+
+    const pcid='PC_'+Math.random().toString(36).substr(2,8);
+    const token=Math.random().toString(36).substr(2,12);
+    doLogin(key,pcid,token);
+
+    // Update URL with token for program to open directly
+    window.history.replaceState(null,null,'/'+pcid+'?token='+token);
 });
 
-// TAB FUNCTIONALITY
+// Tab functionality
 const tabs=document.querySelectorAll('.tab-header .tab');
 const contents=document.querySelectorAll('.tab-content');
 tabs.forEach(tab=>tab.addEventListener('click',()=>{
