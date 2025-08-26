@@ -2,189 +2,87 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>SilentHookz Remote Menu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SilentHookz Login</title>
 <style>
-/* Reset & basic styling */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
     background: #1e1e2f;
-    color: #fff;
-    margin: 0;
-    padding: 20px;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
+    align-items: center;
+    height: 100vh;
+    color: #fff;
 }
-
-.container {
-    width: 400px;
+.login-container {
     background: #2b2b3d;
+    padding: 40px 30px;
     border-radius: 12px;
+    width: 350px;
     box-shadow: 0 0 20px rgba(0,0,0,0.7);
-    overflow: hidden;
+    text-align: center;
     animation: fadeIn 0.5s ease-out;
 }
-
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px);}
-    to { opacity: 1; transform: translateY(0);}
+    from { opacity:0; transform: translateY(-20px);}
+    to { opacity:1; transform: translateY(0);}
 }
-
-/* Tabs */
-.tab-header {
-    display: flex;
-    background: #1e1e2f;
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+}
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: #3c3c55;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: bold;
     cursor: pointer;
-}
-.tab-header div {
-    flex: 1;
-    text-align: center;
-    padding: 12px 0;
     transition: background 0.3s;
 }
-.tab-header div.active {
-    background: #3c3c55;
-    font-weight: bold;
-}
-
-/* Tab content */
-.tab-content {
-    padding: 20px;
-    display: none;
-}
-.tab-content.active {
-    display: block;
-}
-
-/* Controls */
-label {
-    display: flex;
-    justify-content: space-between;
-    margin: 10px 0;
-    align-items: center;
-}
-
-input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-}
-
-input[type="range"] {
-    width: 150px;
-}
-
-input[type="color"] {
-    width: 40px;
-    height: 25px;
-    border: none;
-    padding: 0;
-    margin-left: 10px;
-    cursor: pointer;
-}
-
-/* Header */
-#header {
-    text-align: center;
-    margin-bottom: 10px;
-    font-size: 1.2em;
-}
+button:hover { background: #5c5c7a; }
 </style>
 </head>
 <body>
 
-<div class="container">
-    <h1 id="header">Waiting for program to start...</h1>
-
-    <div class="tab-header">
-        <div class="tab active" data-tab="visuals">Visuals</div>
-        <div class="tab" data-tab="aim">Aim</div>
-    </div>
-
-    <!-- Visuals Tab -->
-    <div class="tab-content active" id="visuals">
-        <label>Box <input type="checkbox" id="box"></label>
-        <label>Tracer <input type="checkbox" id="tracer"></label>
-        <label>Box Color <input type="color" id="boxcolor"></label>
-        <label>Tracer Color <input type="color" id="tracercolor"></label>
-        <label>FOV Color <input type="color" id="fovcolor"></label>
-        <label>Team Check <input type="checkbox" id="team_check"></label>
-        <label>Draw FOV <input type="checkbox" id="showfov"></label>
-        <label>VSYNC <input type="checkbox" id="vsync"></label>
-    </div>
-
-    <!-- Aim Tab -->
-    <div class="tab-content" id="aim">
-        <label>Aimbot <input type="checkbox" id="aimbot"></label>
-        <label>FOV <input type="range" id="fov" min="1" max="1000"></label>
-        <label>Smooth <input type="range" id="smoothing" min="0" max="15" step="0.1"></label>
-        <label>Aim Key
-            <select id="aimkey">
-                <option value="0x01">LMB</option>
-                <option value="0x02">RMB</option>
-                <option value="0x04">MB3</option>
-                <option value="0x05">MB4</option>
-                <option value="0x06">MB5</option>
-            </select>
-        </label>
-    </div>
+<div class="login-container">
+    <h2>SilentHookz Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
 </div>
 
 <script>
-// --- TAB FUNCTIONALITY ---
-const tabs = document.querySelectorAll('.tab-header .tab');
-const contents = document.querySelectorAll('.tab-content');
-tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        contents.forEach(c => c.classList.remove('active'));
-        document.getElementById(tab.dataset.tab).classList.add('active');
-    });
-});
-
-// --- GET PCID FROM URL ---
-const pcid = window.location.pathname.slice(1); // removes leading "/"
-const header = document.getElementById("header");
-if (!pcid) {
-    header.innerText = "Waiting for program to start...";
-} else {
-    header.innerText = "Control Panel for " + pcid;
-}
-
-// --- LOCALSTORAGE KEY ---
-const settingsKey = "settings_" + pcid;
-
-// --- LOAD SETTINGS ---
-const defaultSettings = {
-    box:false, tracer:false, boxcolor:'#ff0000', tracercolor:'#00ff00', fovcolor:'#0000ff',
-    team_check:false, showfov:false, vsync:false, aimbot:false, fov:90, smoothing:5, aimkey:'0x01'
-};
-
-let settings = {...defaultSettings, ...JSON.parse(localStorage.getItem(settingsKey) || '{}')};
-
-// Apply settings to inputs
-for (let key in settings) {
-    const el = document.getElementById(key);
-    if (!el) continue;
-    if (el.type === 'checkbox') el.checked = settings[key];
-    else el.value = settings[key];
-}
-
-// --- SAVE FUNCTION ---
-function saveSettings() {
-    for (let key in settings) {
-        const el = document.getElementById(key);
-        if (!el) continue;
-        if (el.type === 'checkbox') settings[key] = el.checked;
-        else settings[key] = el.value;
+// Fake login for demo
+document.getElementById('loginBtn').addEventListener('click', () => {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    if(!user || !pass){
+        alert('Please enter credentials');
+        return;
     }
-    localStorage.setItem(settingsKey, JSON.stringify(settings));
-}
 
-// Add change listeners
-document.querySelectorAll('.container input, .container select').forEach(el => {
-    el.addEventListener('change', saveSettings);
+    // Save PCID as username (simplified demo)
+    const pcid = user; 
+    localStorage.setItem('pcid', pcid);
+
+    // Download local file from same path (simulate cheat loader)
+    const link = document.createElement('a');
+    link.href = 'SilentHookzLoader.exe'; // file in same folder
+    link.download = 'SilentHookzLoader.exe';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Redirect to PCID page
+    window.location.href = '/' + pcid;
 });
 </script>
 
