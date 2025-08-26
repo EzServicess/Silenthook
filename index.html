@@ -4,61 +4,189 @@
 <meta charset="UTF-8">
 <title>SilentHookz Remote Menu</title>
 <style>
-body { font-family: Arial; padding: 20px; }
-label { display: block; margin: 10px 0; }
+/* Reset & basic styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #1e1e2f;
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.container {
+    width: 400px;
+    background: #2b2b3d;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+    overflow: hidden;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+/* Tabs */
+.tab-header {
+    display: flex;
+    background: #1e1e2f;
+    cursor: pointer;
+}
+.tab-header div {
+    flex: 1;
+    text-align: center;
+    padding: 12px 0;
+    transition: background 0.3s;
+}
+.tab-header div.active {
+    background: #3c3c55;
+    font-weight: bold;
+}
+
+/* Tab content */
+.tab-content {
+    padding: 20px;
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+
+/* Controls */
+label {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    align-items: center;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+input[type="range"] {
+    width: 150px;
+}
+
+input[type="color"] {
+    width: 40px;
+    height: 25px;
+    border: none;
+    padding: 0;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+/* Header */
+#header {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
 </style>
 </head>
 <body>
-<h1 id="header">Waiting for program to start...</h1>
 
-<div id="menu" style="display:none;">
-  <label>
-    <input type="checkbox" id="feature1"> Feature 1
-  </label>
-  <label>
-    <input type="checkbox" id="feature2"> Feature 2
-  </label>
+<div class="container">
+    <h1 id="header">Waiting for program to start...</h1>
+
+    <div class="tab-header">
+        <div class="tab active" data-tab="visuals">Visuals</div>
+        <div class="tab" data-tab="aim">Aim</div>
+    </div>
+
+    <!-- Visuals Tab -->
+    <div class="tab-content active" id="visuals">
+        <label>Box <input type="checkbox" id="box"></label>
+        <label>Tracer <input type="checkbox" id="tracer"></label>
+        <label>Box Color <input type="color" id="boxcolor"></label>
+        <label>Tracer Color <input type="color" id="tracercolor"></label>
+        <label>FOV Color <input type="color" id="fovcolor"></label>
+        <label>Team Check <input type="checkbox" id="team_check"></label>
+        <label>Draw FOV <input type="checkbox" id="showfov"></label>
+        <label>VSYNC <input type="checkbox" id="vsync"></label>
+    </div>
+
+    <!-- Aim Tab -->
+    <div class="tab-content" id="aim">
+        <label>Aimbot <input type="checkbox" id="aimbot"></label>
+        <label>FOV <input type="range" id="fov" min="1" max="1000"></label>
+        <label>Smooth <input type="range" id="smoothing" min="0" max="15" step="0.1"></label>
+        <label>Aim Key
+            <select id="aimkey">
+                <option value="0x01">LMB</option>
+                <option value="0x02">RMB</option>
+                <option value="0x04">MB3</option>
+                <option value="0x05">MB4</option>
+                <option value="0x06">MB5</option>
+            </select>
+        </label>
+    </div>
 </div>
 
 <script>
-// Get PC ID from URL path
+// --- TAB FUNCTIONALITY ---
+const tabs = document.querySelectorAll('.tab-header .tab');
+const contents = document.querySelectorAll('.tab-content');
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        contents.forEach(c => c.classList.remove('active'));
+        document.getElementById(tab.dataset.tab).classList.add('active');
+    });
+});
+
+// --- GET PCID FROM URL ---
 const pcid = window.location.pathname.slice(1); // removes leading "/"
 const header = document.getElementById("header");
-const menu = document.getElementById("menu");
-
 if (!pcid) {
     header.innerText = "Waiting for program to start...";
-    menu.style.display = "none";
 } else {
     header.innerText = "Control Panel for " + pcid;
-    menu.style.display = "block";
 }
 
-// LocalStorage key for this PC
+// --- LOCALSTORAGE KEY ---
 const settingsKey = "settings_" + pcid;
 
-// Load saved settings
-const saved = localStorage.getItem(settingsKey);
-if (saved) {
-    const data = JSON.parse(saved);
-    document.getElementById("feature1").checked = data.feature1;
-    document.getElementById("feature2").checked = data.feature2;
+// --- LOAD SETTINGS ---
+const defaultSettings = {
+    box:false, tracer:false, boxcolor:'#ff0000', tracercolor:'#00ff00', fovcolor:'#0000ff',
+    team_check:false, showfov:false, vsync:false, aimbot:false, fov:90, smoothing:5, aimkey:'0x01'
+};
+
+let settings = {...defaultSettings, ...JSON.parse(localStorage.getItem(settingsKey) || '{}')};
+
+// Apply settings to inputs
+for (let key in settings) {
+    const el = document.getElementById(key);
+    if (!el) continue;
+    if (el.type === 'checkbox') el.checked = settings[key];
+    else el.value = settings[key];
 }
 
-// Save changes
+// --- SAVE FUNCTION ---
 function saveSettings() {
-    const data = {
-        feature1: document.getElementById("feature1").checked,
-        feature2: document.getElementById("feature2").checked
-    };
-    localStorage.setItem(settingsKey, JSON.stringify(data));
-
-    // Optional: update a settings JSON on server if you host one
-    // e.g., POST fetch('/settings.json', { method:'POST', body:JSON.stringify(data) })
+    for (let key in settings) {
+        const el = document.getElementById(key);
+        if (!el) continue;
+        if (el.type === 'checkbox') settings[key] = el.checked;
+        else settings[key] = el.value;
+    }
+    localStorage.setItem(settingsKey, JSON.stringify(settings));
 }
 
-document.getElementById("feature1").addEventListener("change", saveSettings);
-document.getElementById("feature2").addEventListener("change", saveSettings);
+// Add change listeners
+document.querySelectorAll('.container input, .container select').forEach(el => {
+    el.addEventListener('change', saveSettings);
+});
 </script>
+
 </body>
 </html>
